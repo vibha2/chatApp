@@ -70,4 +70,47 @@ const authUser = asyncHandler(async(req,res) => {
 
 });
 
-module.exports = { registerUser, authUser };
+const getAllUser = asyncHandler(async(req,res) => {
+    const user = await User.find({});
+
+    if(!user)
+    {
+       res.status(400).json({
+        success: false,
+        message: "No user is registered yet"
+       }) ;
+
+       throw new Error("Failed to Get All User");
+    }
+    
+    console.log("user=> ", user);
+    return res.status(200).json({
+        success: true,
+        message: "All user fetched successfully",
+        user,
+    })
+
+    
+});
+
+//search User
+//api/user?search=juhi
+const userBySearch = asyncHandler(async(req,res) => {
+  const keyword = req.query.search
+  ? {
+      $or: [
+        {name: { $regex: req.query.search, $options: "i"} },
+        {email: { $regex: req.query.search, $options: "i"} },
+      ],
+    }
+  : { };
+
+  console.log("search by user=> ", keyword);
+
+  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+  
+  res.send(users);
+
+});
+
+module.exports = { registerUser, authUser, getAllUser, userBySearch };
