@@ -1,5 +1,8 @@
 import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react'
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { useToast } from '@chakra-ui/react'
+import UserService from '../../services/UserService';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
 
@@ -9,14 +12,146 @@ const Signup = () => {
     const [confirmPasword, setConfirmPasword] = useState();
     const [password, setPassword] = useState();
     const [pic, setPic] = useState();
+    const [loading, setLoading] = useState(false);
+
+     const navigate = useNavigate();
+     const toast = useToast();
 
     const handleClick = () => setShow(!show);
 
-    const postDetails = (pic) => {
+    const postDetails = (pics) => {
+
+      setLoading(true);
+
+      if(pics === undefined)
+      {
+        toast({
+          title: 'Please Select an Image!',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        return;
+      }
+
+      if(pics.type==="image/jpeg" || pics.type === "image/png"){
+        const data = new FormData();
+        data.append("file", pics );
+        data.append("upload_preset", "chat-app");
+        data.append("cloud_name", "dfpprnbko")
+        fetch("https://api.cloudinary.com/v1_1/dfpprnbko/image/upload", {
+          method: 'post',
+          body: data,
+        }).then((res) => res.json({ })
+          .then(data => {
+            setPic(data.url.toString()); //this is cotaining url
+            console.log("image uploaded successfully", data.url.toString());
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.log(err);
+            setLoading(false);
+          })
+      )
+      }else{
+        toast({
+          title: 'Please Select an Image!',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setLoading(false);
+        return;
+      }
 
     }
 
-    const submitHandler = () => {
+    const submitHandler = async() => {
+
+      setLoading(true);
+      if(!name || !email || !password || !confirmPasword){
+        toast({
+          title: 'Please Fill all the Fields!',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if(password !== confirmPasword){
+        toast({
+          title: 'Password do not match',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+        });
+        setLoading(false);
+        return;
+      }
+
+    const data = {
+      name,
+      email,
+      password,
+      pic
+    }
+    const config = {
+      headers: {
+        "Content-type": "application/json",
+      },
+    };
+    // Api call
+    try{
+      UserService.registerUser(data,config)
+      .then(
+        data => {
+          console.log("Signup User Successfully", data);
+
+          toast({
+          title: 'Registration Successful',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+          });
+
+          localStorage.setItem("userInfo", JSON.stringify(data));
+          setLoading(false);
+          navigate('/chat');
+        }
+      )
+      .catch(error =>{
+          toast({
+          title: 'Error Occured!',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+          });
+          setLoading(false);
+          console.error(error)
+        });
+
+    }catch(error){
+        console.log("Failed to register user:", error);
+        toast({
+          title: 'Error Occured!',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: "bottom",
+          });
+          setLoading(false);
+        // toast.error("Item uploading failed");
+      }
+    
+
 
     }
 
@@ -88,6 +223,7 @@ const Signup = () => {
        color="white"
        style={{ marginTop: 15}}
        onClick={submitHandler}
+       isLoading = {loading}
        >
         Sign Up
        </Button>

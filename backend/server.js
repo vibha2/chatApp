@@ -4,7 +4,7 @@ const { chats } = require("./data/data");
 const cors = require('cors');
 
 const userRoutes = require("./routes/userRoutes");
-
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 dotenv.config();
@@ -32,6 +32,9 @@ app.get('/', (req,res) => {
 
 app.use('/api/v1/user', userRoutes)
 
+app.use(notFound);
+app.use(errorHandler);
+
 // app.get('/api/v1/chat', (req,res) => {
 //     res.send(chats);
 // })
@@ -41,5 +44,7 @@ app.use('/api/v1/user', userRoutes)
 //     const singleChat = chats.find((c) => c._id === req.params.id);
 //     res.send(singleChat);
 // })
+
+
 
 app.listen(PORT, console.log(`Server is started on PORT ${PORT}`));
