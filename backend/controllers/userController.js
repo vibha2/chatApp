@@ -109,7 +109,12 @@ const userBySearch = asyncHandler(async(req,res) => {
 
   const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
   
-  res.send(users);
+  return res.status(200).json({
+        success: true,
+        message: "Searched user fetched successfully",
+        users,
+    })
+//   res.send(users);
 
 });
 
