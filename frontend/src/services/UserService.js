@@ -22,6 +22,16 @@ const UserService = {
         catch(error){
             console.log("error in login user=> ", error);
         }
+    },
+
+    searchUser: async function(search, header){
+        try{
+            const response = axios_api.get(`/user?search=${search}`, header)
+            console.log("response=> ", response);
+            return response? response: null;
+        }catch(error){
+            console.log("error in searching user=> ", error);
+        }
     }
 
 }
